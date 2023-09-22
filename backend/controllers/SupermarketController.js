@@ -1,23 +1,78 @@
 const Supermarket = require('../models/Supermarket')
 const {validationResult} = require('express-validator')
-
+const bcryptjs = require('bcryptjs')
+const createToken = require('../helpers/createUserToken')
+const verifyToken = require('../helpers/verifyToken')
+const getToken = require('../helpers/getToken')
+const jwt = require('jsonwebtoken')
+require('dotenv').config()
 module.exports = class SupermarketController{
-    static async Home(req, res){
-        res.send('Oi')
-    }
     static async Register(req, res){ 
         
+        const {name, proprietary, email, password, confirmPassword, phone, cnpj, state, city, zipcode} = req.body
+        
+        const salt = bcryptjs.genSaltSync(10)
+        const passwordHash = bcryptjs.hashSync(password, salt)
+        
+        const errors = validationResult(req)
+        if(!errors.isEmpty()){
+            return res.status(422).json({message: errors})
+        }
+         if(password !== confirmPassword){
+            return res.status(422).json({message: 'As senhas precisam ser iguais'})
+        }
+        const user = {
+            name: name,
+            proprietary: proprietary,
+            email: email,
+            password: passwordHash,
+            confirmPassword: passwordHash,
+            phone: phone,
+            cnpj: cnpj,
+            state: state,
+            city: city,
+            zipcode: zipcode
+        }
+        try{
+            await Supermarket.create(user) 
+            await createToken(user, req, res)
+        }catch(error){
+            return res.status(500).json({message: error})
+        }
+    }
+    static async Login(req, res){
         const errors = validationResult(req)
         if(!errors.isEmpty()){
             return res.status(400).json({message: errors})
         }
-        const {name, proprietary, cnpj, state, city, zipcode} = req.body
+        const {email, password} = req.body
+        const user = await Supermarket.findOne({where: {email: email}})
+
+        if(!user){
+            res.status(422).json({message: 'Não existe nenhum usuário com este e-mail, crie sua conta e tente novamente!'})
+            return
+        }
         
-        try{
-            Supermarket.create({name: name, proprietary: proprietary, cnpj: cnpj, state: state, city: city, zipcode: zipcode })
-            res.status(200).json({message: 'Supermercado cadastrado com sucesso!'})
-        }catch(error){
-            res.status(500).json({message: error})
+        const checkPassword = await bcryptjs.compare(password, user.password)
+        
+        if(!checkPassword){
+            res.status(422).json({message: 'Senha incorreta!'})
+            return
+        }
+        await createToken(user, req, res) 
+    }
+    static async getUser(req, res){
+        let currentUser 
+        if(req.headers.authorization){
+            const token = await getToken(req)
+            const decoded = jwt.verify(token, process.env.SECRET)
+            currentUser = await Supermarket.findOne({where: { id: decoded.id}})
+            currentUser.password = ''
+            if(!currentUser){
+                res.status(422).json({message: 'Usuário não encontrado!'})
+                return
+            }
+            res.status(200).send(currentUser)
         }
     }
 }
