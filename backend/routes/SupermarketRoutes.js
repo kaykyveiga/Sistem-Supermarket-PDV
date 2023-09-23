@@ -20,5 +20,5 @@ router.post('/login', [
     body('password').notEmpty().withMessage(`O campo senha não pode estar vazio`)
 ], SupermarketController.Login)
 router.get('/getuser', SupermarketController.getUser)
-
+router.patch('/edituser/:id', SupermarketController.editUser)
 module.exports = router

@@ -21,6 +21,12 @@ module.exports = class SupermarketController{
          if(password !== confirmPassword){
             return res.status(422).json({message: 'As senhas precisam ser iguais'})
         }
+        const userExists = await Supermarket.findOne({where:
+        {email: email}})
+        if(userExists){
+            res.status(422).json({message: 'E-mail já cadastrado, utilize outro ou entre em sua conta!'})
+            return
+        }
         const user = {
             name: name,
             proprietary: proprietary,
@@ -35,9 +41,9 @@ module.exports = class SupermarketController{
         }
         try{
             await Supermarket.create(user) 
-            await createToken(user, req, res)
+            const token = await createToken(user, req, res)
         }catch(error){
-            return res.status(500).json({message: error})
+            return res.status(422).json({message: error})
         }
     }
     static async Login(req, res){
@@ -73,6 +79,42 @@ module.exports = class SupermarketController{
                 return
             }
             res.status(200).send(currentUser)
+        }
+    }
+    static async editUser(req, res){
+        const id = req.params.id
+        const {name, proprietary, email, password, confirmPassword, phone, cnpj, state, city, zipcode} = req.body
+        
+        if(password !== confirmPassword){
+            return res.status(422).json({message: 'As senhas precisam ser iguais'})
+        }
+        
+        const salt = bcryptjs.genSaltSync(10)
+        const passwordHash = bcryptjs.hashSync(password, salt)
+        
+        const user = {
+            name: name,
+            proprietary: proprietary,
+            email: email,
+            password: passwordHash,
+            confirmPassword: passwordHash,
+            phone: phone,
+            cnpj: cnpj,
+            state: state,
+            city: city,
+            zipcode: zipcode
+        }
+        const userExists = await Supermarket.findOne({where:{email: email}})
+
+        if(userExists){
+            res.status(422).json({message: "O e-mail já está sendo utilizado, escolha outro e tente novamente!"})
+            return
+        }
+        try{
+            await Supermarket.update(user, {where: {id: id}}) 
+            res.status(200).json({message: "Dados atualizados!"})
+        }catch(error){
+            return res.status(500).json({message: error})
         }
     }
 }

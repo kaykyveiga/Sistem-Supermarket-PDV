@@ -6,6 +6,10 @@ const Product = sequelize.define('Product',{
         type: DataTypes.STRING,
         allowNull: false
     },
+    barcode: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     price: {
         type: DataTypes.STRING,
         allowNull: false
