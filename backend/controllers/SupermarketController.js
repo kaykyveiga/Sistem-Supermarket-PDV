@@ -7,6 +7,7 @@ const getToken = require('../helpers/getToken')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 module.exports = class SupermarketController{
+    //REGISTRO DE USUÁRIO COM VALIDACAO DE ERROS USANDO EXPRESS-VALIDATOR E SENHAS CRIPTOGRAFAS COM BCRYPTJS
     static async Register(req, res){ 
         
         const {name, proprietary, email, password, confirmPassword, phone, cnpj, state, city, zipcode} = req.body
@@ -41,11 +42,12 @@ module.exports = class SupermarketController{
         }
         try{
             await Supermarket.create(user) 
-            const token = await createToken(user, req, res)
+            await createToken(user, req, res)
         }catch(error){
             return res.status(422).json({message: error})
         }
     }
+    //LOGIN DE USUARIO USANDO EMAIL E SENHA
     static async Login(req, res){
         const errors = validationResult(req)
         if(!errors.isEmpty()){
@@ -67,6 +69,7 @@ module.exports = class SupermarketController{
         }
         await createToken(user, req, res) 
     }
+    //BUSCA OS DADOS DO USUÁRIO LOGADO A PARTIR DO TOKEN
     static async getUser(req, res){
         let currentUser 
         if(req.headers.authorization){
@@ -81,6 +84,7 @@ module.exports = class SupermarketController{
             res.status(200).send(currentUser)
         }
     }
+    //EDICAO DE USUARIO
     static async editUser(req, res){
         const id = req.params.id
         const {name, proprietary, email, password, confirmPassword, phone, cnpj, state, city, zipcode} = req.body

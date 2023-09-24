@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const Supermarket = require('../models/Supermarket')
 const getToken = require('../helpers/getToken')
+
+//OBTEM O USUARIO A PARTIR DO TOKEN
 const getUserByTokenFunction = async (req, res)=>{
     const token = await getToken(req)
     if(!token){

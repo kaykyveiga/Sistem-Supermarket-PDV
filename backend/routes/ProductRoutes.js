@@ -13,6 +13,6 @@ router.delete('/delete/:id', verifyToken, ProductController.delete)
 router.patch('/edit/:id', verifyToken, ProductController.editProduct)
 router.get('/all', verifyToken, ProductController.getAllProducts)
 router.get('/:id', verifyToken, ProductController.getProductById)
-router.get('/?q=', verifyToken, ProductController.getProductsByName)
+router.get('/', verifyToken, ProductController.getProductsByName)
 
 module.exports = router
