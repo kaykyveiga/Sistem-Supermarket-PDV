@@ -1,6 +1,5 @@
 const sequelize = require('../db/conn')
 const {DataTypes} = require('sequelize')
-const Product = require('./Product')
 
 const Supermarket = sequelize.define('Supermarket', {
     name: {
@@ -45,7 +44,13 @@ const Supermarket = sequelize.define('Supermarket', {
     }
 })
 
+const Product = require('./Product')
 Product.belongsTo(Supermarket)
+const Cart = require('./Cart')
+Cart.belongsTo(Supermarket, {
+    foreignKey: 'SupermarketId'
+})
+Supermarket.hasMany(Cart)
 Supermarket.hasMany(Product)
 
 module.exports = Supermarket

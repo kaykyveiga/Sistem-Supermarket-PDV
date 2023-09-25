@@ -14,9 +14,10 @@ const Product = sequelize.define('Product',{
         type: DataTypes.STRING,
         allowNull: false
     },
-    qty: {
+    totalAmount: {
         type: DataTypes.INTEGER,
         allowNull: false
     }
 })
+
 module.exports = Product

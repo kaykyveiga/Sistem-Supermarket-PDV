@@ -1,5 +1,7 @@
 const {Op} = require('sequelize')
 const Product = require('../models/Product')
+const CartProduct = require('../models/CartProduct')
+const Cart = require('../models/Cart')
 const Supermarket = require('../models/Supermarket')
 const {validationResult} = require('express-validator')
 const getUserByToken = require('../helpers/getUserByToken')
@@ -13,7 +15,7 @@ function generateNumber(){
 module.exports = class ProductController{
     //CRIACAO DO PRODUTO
     static async create(req, res){
-        const {name, price, qty} = req.body
+        const {name, price, totalAmount} = req.body
         const errors = validationResult(req)
         if(!errors.isEmpty()){
             res.status(422).json({message: errors})
@@ -25,7 +27,7 @@ module.exports = class ProductController{
             name: name,
             barcode: randomNumber.toString(),
             price: price,
-            qty: qty,
+            totalAmount: totalAmount,
             SupermarketId: user.id
         }
         try{
@@ -54,13 +56,13 @@ module.exports = class ProductController{
     static async editProduct(req, res){
         //EDICAO DO PRODUTO
         const id = req.params.id
-        const {name, price, qty, barcode} = req.body
+        const {name, price, totalAmount, barcode} = req.body
         
         const product = {
             name: name,
             barcode: barcode,
             price: price,
-            qty: qty
+            totalAmount: totalAmount
         }
 
         try{
@@ -113,6 +115,80 @@ module.exports = class ProductController{
             res.status(200).json({message: {products}})
         }catch(error){
             res.status(422).json({message: error})
+        }
+    }
+    static async updateStock(req, res){
+        const id= req.params.id
+        const qty = Number(req.body.qty)
+
+        if (isNaN(qty) || qty <= 0) {
+            res.status(422).json({ message: 'Quantidade inválida.' });
+            return;
+        }
+        const product = await Product.findOne({where: {id: id}})
+        console.log(product)
+        
+        if(!product){
+            res.status(422).json({message: 'Produto não encontrado!'})
+            return
+        }
+        
+        if((product.totalAmount - qty) < 0){
+            res.status(422).json({message: 'Produto indisponível na quantidade selecionada!'})
+            return
+        }
+        
+        try{
+            let totalAmount = product.totalAmount - qty
+            await Product.update({totalAmount: totalAmount}, {where: {id:id}})
+            res.status(200).json({message: 'Estoque atualizado!'})
+        }catch(error){
+            res.status(422).json({message: error})
+        } 
+    }
+    static async addCart(req, res){
+        const id = req.params.id
+        const quantity = req.body.quantity
+        const newCart = req.body.newCart
+        const user = await getUserByToken(req, res)
+        
+        let cartId
+        
+        if(newCart){
+            const createdCart = await Cart.create({SupermarketId: user.id})
+            cartId = createdCart.id
+        }else{
+            const existingCart = await Cart.findAll({
+                order: [['id', 'DESC']],
+                limit: 1
+            })
+            if(existingCart.length > 0){
+                cartId = existingCart[0].id
+            }else{
+                const createdCart = await Cart.create({SupermarketId: user.id})
+                cartId = createdCart.id
+            }
+            
+        }
+        
+        const product = await Product.findOne({where: {id: id}})
+        
+        if(!product){
+            res.status(422).json({message: 'Produto não encontrado!'})
+            return
+        }
+        const productsIds = {
+            cartId: cartId,
+            productId: product.id,
+            quantity: quantity
+        }
+        const cartProduct = [productsIds.id]
+
+        try{
+            await CartProduct.update(cartProduct, {where: {cartId: cartId}})
+            res.status(200).json({message: 'Produto adicionado!'})
+        }catch(error){
+            return res.status(500).json({message: error})
         }
     }
 }

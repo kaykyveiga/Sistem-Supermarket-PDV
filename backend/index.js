@@ -3,6 +3,8 @@ const app = express()
 const db = require('./db/conn')
 const Product = require('./models/Product')
 const Supermarket = require('./models/Supermarket')
+const Cart = require('./models/Cart')
+const CartProduct = require('./models/CartProduct')
 const cors = require('cors')
 
 app.use(express.json())
@@ -25,6 +27,7 @@ app.use('/product', ProductRoutes)
 db
 .sync()
 //.sync({force:true})
+//.sync({alter: true})
 .then(()=>
 app.listen(5000)
 )
