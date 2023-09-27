@@ -1,4 +1,4 @@
-const {Op} = require('sequelize')
+const {Op, where} = require('sequelize')
 const Product = require('../models/Product')
 const CartProduct = require('../models/CartProduct')
 const Cart = require('../models/Cart')
@@ -117,36 +117,8 @@ module.exports = class ProductController{
             res.status(422).json({message: error})
         }
     }
-    static async updateStock(req, res){
-        const id= req.params.id
-        const qty = Number(req.body.qty)
-
-        if (isNaN(qty) || qty <= 0) {
-            res.status(422).json({ message: 'Quantidade inválida.' });
-            return;
-        }
-        const product = await Product.findOne({where: {id: id}})
-        console.log(product)
-        
-        if(!product){
-            res.status(422).json({message: 'Produto não encontrado!'})
-            return
-        }
-        
-        if((product.totalAmount - qty) < 0){
-            res.status(422).json({message: 'Produto indisponível na quantidade selecionada!'})
-            return
-        }
-        
-        try{
-            let totalAmount = product.totalAmount - qty
-            await Product.update({totalAmount: totalAmount}, {where: {id:id}})
-            res.status(200).json({message: 'Estoque atualizado!'})
-        }catch(error){
-            res.status(422).json({message: error})
-        } 
-    }
     static async addCart(req, res){
+        //ADICIONA O PRODUTO(PEGANDO O ID) NO CARRINHO, CASO NAO EXISTIR CARRINHO CRIA-SE UM, SENAO, USA O ULTIMO CARRINHO CRIADO
         const id = req.params.id
         const quantity = req.body.quantity
         const newCart = req.body.newCart
@@ -177,18 +149,72 @@ module.exports = class ProductController{
             res.status(422).json({message: 'Produto não encontrado!'})
             return
         }
-        const productsIds = {
+        const cartProducts = {
             cartId: cartId,
             productId: product.id,
             quantity: quantity
         }
-        const cartProduct = [productsIds.id]
-
+        const productsInCart = await CartProduct.findOne({where: {cartId: cartId, productId: product.id}})
+        
         try{
-            await CartProduct.update(cartProduct, {where: {cartId: cartId}})
+            if(productsInCart){
+                await CartProduct.update({quantity: productsInCart.quantity + quantity}, {where: {productId: cartProducts.productId}})
+            }else{
+                await CartProduct.create(cartProducts)
+            }
+            
             res.status(200).json({message: 'Produto adicionado!'})
         }catch(error){
             return res.status(500).json({message: error})
         }
+    }
+    static async getCart(req, res){
+        //OBTEM OS PRODUTOS DE UM DETERMINADO CARRINHO(PEGANDO PELO ID) E RESPONSE COM JSON
+        const id = req.params.id
+        const cartProducts = await CartProduct.findAll({where: {cartId: id}})
+        if(!cartProducts || cartProducts.length === 0){
+            res.status(422).json({message: 'O carrinho está vazio!'})
+            return
+        }
+        const cartProductsIds = cartProducts.map((item)=>item.productId)
+        const product = await Product.findAll({where: {id: cartProductsIds}})
+        
+        if(!product){
+            res.status(422).json({message: 'Produto não encontrado!'})
+            return
+        }
+        
+        try{
+            res.status(200).json({message: cartProducts, product: product})
+        }catch(error){
+            res.status(422).json({message: error})
+        }
+    }
+    static async updateStock(req, res){
+        //UPDATE DE ESTOQUE, BUSCA OS PRODUTOS DE UM CARRINHO E ASSIM QUE SE FECHAR A COMPRA REALIZA A MODIFICAO. 
+        //SE O PRODUTO ESTIVER COM 0 UNIDADES NO ESTOQUE SE TORNA IMPOSSIVEL ADICIONAR AO CARRINHO
+        const id= req.params.id
+        const product = await Product.findOne({where: {id: id}})
+        
+        if(!product){
+            res.status(422).json({message: 'Produto não encontrado!'})
+            return
+        }
+        const qtyEntries = await CartProduct.findAll({where: {productId: product.id}})
+        
+        const qtyInCart = qtyEntries.reduce((total, entry)=> total + entry.quantity, 0)
+        
+        if((product.totalAmount - qtyInCart) < 0){
+            res.status(422).json({message: 'Produto indisponível na quantidade selecionada!'})
+            return
+        }
+        
+        try{
+            let totalAmount = product.totalAmount - qtyInCart
+            await Product.update({totalAmount: totalAmount}, {where: {id:id}})
+            res.status(200).json({message: 'Estoque atualizado!'})
+        }catch(error){
+            res.status(422).json({message: error})
+        } 
     }
 }
