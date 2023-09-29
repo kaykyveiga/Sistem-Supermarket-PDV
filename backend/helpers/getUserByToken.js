@@ -12,13 +12,13 @@ const getUserByTokenFunction = async (req, res)=>{
     }
     try{
         const decoded = jwt.verify(token, process.env.SECRET)
-        const userId = decoded.id
-        const userExists = await Supermarket.findOne({where: {id: userId}})
-        if(!userExists){
+        const supermarketId = decoded.id
+        const supermarketExists = await Supermarket.findOne({where: {id: supermarketId}})
+        if(!supermarketExists){
             res.json(422).json({message: "Usuário não encontrado!"})
             return
         }
-        return userExists
+        return supermarketExists
     }catch(error){
         res.status(422).json({message: error})
     }

@@ -18,10 +18,6 @@ const Supermarket = sequelize.define('Supermarket', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    confirmPassword: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
     phone: {
         type: DataTypes.STRING,
         allowNull: false
@@ -52,5 +48,7 @@ Cart.belongsTo(Supermarket, {
 })
 Supermarket.hasMany(Cart)
 Supermarket.hasMany(Product)
+const Users = require('./Users')
+Supermarket.hasMany(Users)
 
 module.exports = Supermarket

@@ -21,14 +21,14 @@ module.exports = class ProductController{
             res.status(422).json({message: errors})
             return
         }
-        const user = await getUserByToken(req, res)
+        const supermarket = await getUserByToken(req, res)
         const randomNumber = generateNumber()
         const product = {
             name: name,
             barcode: randomNumber.toString(),
             price: price,
             totalAmount: totalAmount,
-            SupermarketId: user.id
+            SupermarketId: supermarket.id
         }
         try{
             await Product.create(product)

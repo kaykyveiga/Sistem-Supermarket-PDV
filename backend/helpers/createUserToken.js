@@ -8,7 +8,7 @@ async function createUserToken(user, req, res){
         id: user.id
     }, process.env.SECRET)
     try{
-        res.json({message: 'Você está autenticado!', token: token})
+        res.status(200).json({message: 'Você está autenticado!', token: token})
     }catch(error){
          res.status(422).json({message: error})
     }

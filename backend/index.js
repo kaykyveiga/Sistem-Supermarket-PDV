@@ -5,6 +5,7 @@ const Product = require('./models/Product')
 const Supermarket = require('./models/Supermarket')
 const Cart = require('./models/Cart')
 const CartProduct = require('./models/CartProduct')
+const Users = require('./models/Users')
 const cors = require('cors')
 
 app.use(express.json())
@@ -20,8 +21,10 @@ app.use(cors(corsOptions))
 //Routes
 const SupermarketRoutes = require('./routes/SupermarketRoutes')
 const ProductRoutes = require('./routes/ProductRoutes')
+const UsersRoutes = require('./routes/UsersRoutes')
 app.use('/supermarket', SupermarketRoutes)
 app.use('/product', ProductRoutes)
+app.use('/users', UsersRoutes)
 
 
 db
