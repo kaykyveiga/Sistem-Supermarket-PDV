@@ -14,7 +14,7 @@ router.patch('/edit/:id', verifyToken, ProductController.editProduct)
 router.get('/all', verifyToken, ProductController.getAllProducts)
 router.get('/:id', verifyToken, ProductController.getProductById)
 router.get('/', verifyToken, ProductController.getProductsByName)
-router.post('/updatestock/:id', verifyToken, ProductController.updateStock)
+router.post('/updatestock', verifyToken, ProductController.updateStock)
 router.post('/addcart/:id/', verifyToken, ProductController.addCart)
 router.get('/getcart/:id', verifyToken, ProductController.getCart)
 

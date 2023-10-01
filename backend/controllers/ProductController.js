@@ -198,7 +198,13 @@ module.exports = class ProductController{
     static async updateStock(req, res){
         //UPDATE DE ESTOQUE, BUSCA OS PRODUTOS DE UM CARRINHO E ASSIM QUE SE FECHAR A COMPRA REALIZA A MODIFICAO. 
         //SE O PRODUTO ESTIVER COM 0 UNIDADES NO ESTOQUE SE TORNA IMPOSSIVEL ADICIONAR AO CARRINHO
-        const id= req.params.id
+        /*const id = req.params.id
+        
+        const products = await CartProduct.FindAll()
+        console.log(products)*/
+        
+        
+        /*const id= req.params.id
         const product = await Product.findOne({where: {id: id}})
         
         if(!product){
@@ -220,6 +226,6 @@ module.exports = class ProductController{
             res.status(200).json({message: 'Estoque atualizado!'})
         }catch(error){
             res.status(422).json({message: error})
-        } 
+        } */
     }
 }
