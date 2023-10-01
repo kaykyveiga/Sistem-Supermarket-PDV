@@ -1,6 +1,7 @@
 const Users = require('../models/Users')
 const {validationResult} = require('express-validator')
 const getUserByToken = require('../helpers/getUserByToken')
+const getSupermarketByToken = require('../helpers/getEstablishmentByToken')
 const createToken = require('../helpers//createUserToken')
 const bcryptjs = require('bcryptjs')
 
@@ -24,12 +25,12 @@ module.exports = class UsersController{
             return
         }
 
-        const supermarket = await getUserByToken(req, res)
+        const establishment = await getSupermarketByToken(req, res)
         const user = {
             name: name,
             password: passwordHash,
             isAdmin: isAdmin,
-            SupermarketId: supermarket.id
+            EstablishmentId: establishment.id
         }
         if(!isAdmin){
             user.isAdmin = false

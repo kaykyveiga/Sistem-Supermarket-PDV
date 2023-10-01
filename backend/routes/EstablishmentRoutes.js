@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const SupermarketController = require('../controllers/SupermarketController')
+const EstablishmentController = require('../controllers/EstablishmentController')
 const {body} = require('express-validator')
 
 router.post('/register', [
@@ -14,11 +14,11 @@ router.post('/register', [
     body('state').notEmpty().withMessage(`O campo estado não pode estar vazio`),
     body('city').notEmpty().withMessage(`O campo cidade não pode estar vazio`),
     body('zipcode').notEmpty().withMessage(`O campo CEP não pode estar vazio`)
-] , SupermarketController.Register)
+] , EstablishmentController.registerEstablishment)
 router.post('/login', [
     body('email').notEmpty().withMessage(`O campo email não pode estar vazio`),
     body('password').notEmpty().withMessage(`O campo senha não pode estar vazio`)
-], SupermarketController.Login)
-router.get('/getuser', SupermarketController.getSupermarket)
-router.patch('/edituser/:id', SupermarketController.editSupermarket)
+], EstablishmentController.login)
+router.get('/getuser', EstablishmentController.getEstablishment)
+router.patch('/edituser/:id', EstablishmentController.editEstablishment)
 module.exports = router

@@ -1,11 +1,9 @@
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
-const Users = require('../models/Users')
-const getToken = require('../helpers/getToken')
+const Establishment = require("../models/Establishment")
+const getToken = require('./getToken')
 
-
-//OBTEM O USUARIO A PARTIR DO TOKEN
-const getUserByTokenFunction = async (req, res)=>{
+const getEstablishmentByTokenFunction = async (req, res)=>{
     const token = await getToken(req)
     if(!token){
         res.status(401).json({message: "Acesso negado!"})
@@ -13,16 +11,16 @@ const getUserByTokenFunction = async (req, res)=>{
     }
     try{
         const decoded = jwt.verify(token, process.env.SECRET)
-        const userId = decoded.id
-        const userExists = await Users.findOne({where: {id: userId}})
-        if(!userExists){
+        const establishmentId = decoded.id
+        const establishmentExists = await Establishment.findOne({where: {id: establishmentId}})
+        if(!establishmentExists){
             res.status(422).json({message: "Usuário não encontrado!"})
             return
         }
-        return userExists
+        return establishmentExists
     }catch(error){
         res.status(422).json({message: error})
     }
     
 }
-module.exports = getUserByTokenFunction
+module.exports = getEstablishmentByTokenFunction

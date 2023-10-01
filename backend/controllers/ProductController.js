@@ -2,9 +2,10 @@ const {Op, where} = require('sequelize')
 const Product = require('../models/Product')
 const CartProduct = require('../models/CartProduct')
 const Cart = require('../models/Cart')
-const Supermarket = require('../models/Supermarket')
+const Establishment = require('../models/Establishment')
 const {validationResult} = require('express-validator')
 const getUserByToken = require('../helpers/getUserByToken')
+const getEstablishmentByToken = require('../helpers/getEstablishmentByToken')
 
 //GERA UM NÚMERO COM 13 ALGORITMOS QUE SIMULA O CÓDIGO DE BARRAS DE UM PRODUTO
 function generateNumber(){
@@ -21,28 +22,27 @@ module.exports = class ProductController{
             res.status(422).json({message: errors})
             return
         }
-        const supermarket = await getUserByToken(req, res)
+        const establishment = await getEstablishmentByToken(req, res)
         const randomNumber = generateNumber()
         const product = {
             name: name,
             barcode: randomNumber.toString(),
             price: price,
             totalAmount: totalAmount,
-            SupermarketId: supermarket.id
+            EstablishmentId: establishment.id
         }
         try{
             await Product.create(product)
             res.status(200).json({message: "Produto cadastrado!"})
         }catch(error){
             res.status(422).json({message: error})
-            return
         }
     }
     static async delete(req, res){
         //EXCLUSAO DO PRODUTO
         const id = req.params.id
         try{
-            const productExists = await Supermarket.findOne({where: {id: id}})
+            const productExists = await Product.findOne({where: {id: id}})
             if(!productExists){
                 res.status(422).json({message: "Produto não encontrado!"})
                 return
@@ -127,8 +127,9 @@ module.exports = class ProductController{
         let cartId
         
         if(newCart){
-            const createdCart = await Cart.create({SupermarketId: user.id})
+            const createdCart = await Cart.create({UserId: user.id})
             cartId = createdCart.id
+            
         }else{
             const existingCart = await Cart.findAll({
                 order: [['id', 'DESC']],
@@ -137,7 +138,7 @@ module.exports = class ProductController{
             if(existingCart.length > 0){
                 cartId = existingCart[0].id
             }else{
-                const createdCart = await Cart.create({SupermarketId: user.id})
+                const createdCart = await Cart.create({UserId: user.id})
                 cartId = createdCart.id
             }
             
@@ -158,7 +159,11 @@ module.exports = class ProductController{
         
         try{
             if(productsInCart){
-                await CartProduct.update({quantity: productsInCart.quantity + quantity}, {where: {productId: cartProducts.productId}})
+                await CartProduct.update({quantity: productsInCart.quantity + quantity}, 
+                {where: {
+                    productId: cartProducts.productId,
+                    cartId: cartId
+                }})
             }else{
                 await CartProduct.create(cartProducts)
             }
