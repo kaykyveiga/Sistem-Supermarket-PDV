@@ -1,0 +1,12 @@
+.formControl{
+    margin: 0.9em;
+}
+.formControl label{
+    font-weight: bold;
+    margin-right: 1em;
+    padding-bottom: 1em;
+}
+.formControl input{
+    width: 100%;
+    margin-top: 1em;
+}

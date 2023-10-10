@@ -43,7 +43,7 @@ module.exports = class UsersController{
         }
     }
     static async login(req, res){
-        const id = req.params.id
+        const id = req.params.id || req.body.id
         const {password} = req.body
         
         const user = await Users.findOne({where: {id: id}})

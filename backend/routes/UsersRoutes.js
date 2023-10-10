@@ -8,7 +8,9 @@ router.post('/register', [
     body('password').notEmpty().withMessage('O campo SENHA não pode estar vazio!'),
     body('confirmPassword').notEmpty().withMessage('O campo COFIRMAR SENHA nÃo pode estar vazio!')
 ] , UsersController.register)
+
 router.post('/login/:id', UsersController.login)
+
 router.get('/getusers', UsersController.getUsers)
 
 module.exports = router

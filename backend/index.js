@@ -19,12 +19,12 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 //Routes
-const EstablishmentRoutes = require('./routes/EstablishmentRoutes')
-const ProductRoutes = require('./routes/ProductRoutes')
-const UsersRoutes = require('./routes/UsersRoutes')
-app.use('/establishment', EstablishmentRoutes)
-app.use('/product', ProductRoutes)
-app.use('/users', UsersRoutes)
+const establishmentRoutes = require('./routes/EstablishmentRoutes')
+const productRoutes = require('./routes/ProductRoutes')
+const usersRoutes = require('./routes/UsersRoutes')
+app.use('/establishment', establishmentRoutes)
+app.use('/product', productRoutes)
+app.use('/users', usersRoutes)
 
 
 db

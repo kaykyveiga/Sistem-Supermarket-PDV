@@ -11,16 +11,17 @@ module.exports = class EstablishmentController{
     //REGISTRO DE USUÁRIO COM VALIDACAO DE ERROS USANDO EXPRESS-VALIDATOR E SENHAS CRIPTOGRAFAS COM BCRYPTJS
     static async registerEstablishment(req, res){ 
         
-        const {name, proprietary, email, password, confirmPassword, phone, cnpj, state, city, zipcode} = req.body
-        
-        const salt = bcryptjs.genSaltSync(10)
-        const passwordHash = bcryptjs.hashSync(password, salt)
+        const {nameEstablishment, nameProprietary, email, password, confirmPassword, phone, cnpj, state, city, zipcode} = req.body
         
         const errors = validationResult(req)
         if(!errors.isEmpty()){
             return res.status(422).json({message: errors})
         }
-         if(password !== confirmPassword){
+        
+        const salt = bcryptjs.genSaltSync(10)
+        const passwordHash = bcryptjs.hashSync(password, salt)
+        
+        if(password !== confirmPassword){
             return res.status(422).json({message: 'As senhas precisam ser iguais'})
         }
         const establishmentExists = await Establishment.findOne({where:
@@ -30,8 +31,8 @@ module.exports = class EstablishmentController{
             return
         }
         const establishment = {
-            name: name,
-            proprietary: proprietary,
+            name: nameEstablishment,
+            proprietary: nameProprietary,
             email: email,
             password: passwordHash,
             phone: phone,
@@ -42,18 +43,21 @@ module.exports = class EstablishmentController{
         }
         try{
             await Establishment.create(establishment) 
-            await createToken(establishment, req, res)
+            const token = await createToken(establishment, req, res)
+            res.status(200).json({message: 'Estabelecimento cadastrado!', token: token})
         }catch(error){
-            return res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     //LOGIN DE USUARIO USANDO EMAIL E SENHA
     static async login(req, res){
+        const {email, password} = req.body
+        
         const errors = validationResult(req)
         if(!errors.isEmpty()){
             return res.status(400).json({message: errors})
         }
-        const {email, password} = req.body
+        
         const establishment = await Establishment.findOne({where: {email: email}})
 
         if(!establishment){
@@ -70,23 +74,23 @@ module.exports = class EstablishmentController{
         try{
             await createToken(establishment, req, res) 
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json()
         }
         
     }
     //BUSCA OS DADOS DO USUÁRIO LOGADO A PARTIR DO TOKEN
     static async getEstablishment(req, res){
-        let currentSupermarket
+        let currentEstablishment
         if(req.headers.authorization){
             const token = await getToken(req)
             const decoded = jwt.verify(token, process.env.SECRET)
-            currentSupermarket = await Establishment.findOne({where: { id: decoded.id}})
-            currentSupermarket.password = ''
-            if(!currentSupermarket){
+            currentEstablishment = await Establishment.findOne({where: { id: decoded.id}})
+            currentEstablishment.password = ''
+            if(!currentEstablishment){
                 res.status(422).json({message: 'Usuário não encontrado!'})
                 return
             }
-            res.status(200).send(currentSupermarket)
+            res.status(200).send(currentEstablishment)
         }
     }
     //EDICAO DE USUARIO
@@ -106,7 +110,6 @@ module.exports = class EstablishmentController{
             proprietary: proprietary,
             email: email,
             password: passwordHash,
-            confirmPassword: passwordHash,
             phone: phone,
             cnpj: cnpj,
             state: state,
@@ -123,7 +126,7 @@ module.exports = class EstablishmentController{
             await Establishment.update(establishment, {where: {id: id}}) 
             res.status(200).json({message: "Dados atualizados!"})
         }catch(error){
-            return res.status(500).json({message: error})
+            return res.status(500).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
 }

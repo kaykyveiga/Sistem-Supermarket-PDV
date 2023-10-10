@@ -35,22 +35,22 @@ module.exports = class ProductController{
             await Product.create(product)
             res.status(200).json({message: "Produto cadastrado!"})
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async delete(req, res){
         //EXCLUSAO DO PRODUTO
         const id = req.params.id
-        try{
-            const productExists = await Product.findOne({where: {id: id}})
+        const productExists = await Product.findOne({where: {id: id}})
             if(!productExists){
                 res.status(422).json({message: "Produto não encontrado!"})
                 return
             }
+        try{
             await Product.destroy({where: {id: id}})
             res.status(200).json({message: "Produto excluído!"})
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async editProduct(req, res){
@@ -69,7 +69,7 @@ module.exports = class ProductController{
             await Product.update(product, {where: {id: id}})
             res.status(200).json({message: 'Produto atualizado!'})
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async getAllProducts(req, res){
@@ -80,7 +80,7 @@ module.exports = class ProductController{
         try{
             res.status(200).json({message: {products}})
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async getProductById(req, res){
@@ -94,27 +94,27 @@ module.exports = class ProductController{
         try{
             res.status(200).json({message: product})
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async getProductsByName(req, res){
         //BUSCA O PRODUTO PELO NOME
         const {q} = req.query
-        try{
-            const products = await Product.findAll({
-                where: {
-                    name: {
-                        [Op.like]: `%${q}%`
-                    }
+        const products = await Product.findAll({
+            where: {
+                name: {
+                    [Op.like]: `%${q}%`
                 }
-            })
-            if(products.length === 0){
-                res.status(422).json({message: 'Produto não encontrado!'})
-                return
             }
-            res.status(200).json({message: {products}})
+        })
+        if(products.length === 0){
+            res.status(422).json({message: 'Produto não encontrado!'})
+            return
+        }
+        try{
+            res.status(200).json({message: 'Produtos cadastrados: ' + {products}})
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async addCart(req, res){
@@ -170,7 +170,7 @@ module.exports = class ProductController{
             
             res.status(200).json({message: 'Produto adicionado!'})
         }catch(error){
-            return res.status(500).json({message: error})
+            return res.status(500).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async getCart(req, res){
@@ -192,21 +192,17 @@ module.exports = class ProductController{
         try{
             res.status(200).json({message: cartProducts, product: product})
         }catch(error){
-            res.status(422).json({message: error})
+            res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async updateStock(req, res){
         //UPDATE DE ESTOQUE, BUSCA OS PRODUTOS DE UM CARRINHO E ASSIM QUE SE FECHAR A COMPRA REALIZA A MODIFICAO. 
         //SE O PRODUTO ESTIVER COM 0 UNIDADES NO ESTOQUE SE TORNA IMPOSSIVEL ADICIONAR AO CARRINHO
-        /*const id = req.params.id
+        const id = req.params.id
         
         const products = await CartProduct.FindAll()
-        console.log(products)*/
-        
-        
-        /*const id= req.params.id
-        const product = await Product.findOne({where: {id: id}})
-        
+        console.log(products)
+
         if(!product){
             res.status(422).json({message: 'Produto não encontrado!'})
             return
@@ -226,6 +222,6 @@ module.exports = class ProductController{
             res.status(200).json({message: 'Estoque atualizado!'})
         }catch(error){
             res.status(422).json({message: error})
-        } */
+        } 
     }
 }

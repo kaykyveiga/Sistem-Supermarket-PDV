@@ -7,10 +7,6 @@ async function createUserToken(user, req, res){
         name: user.name,
         id: user.id
     }, process.env.SECRET)
-    try{
-        res.status(200).json({message: 'Você está autenticado!', token: token})
-    }catch(error){
-         res.status(422).json({message: error})
-    }
+    return token
 }
 module.exports = createUserToken
