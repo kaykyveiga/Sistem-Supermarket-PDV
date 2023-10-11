@@ -36,7 +36,7 @@ const Register = () => {
 
           <Input type='text' text='Estado:' name='state' id='state' handleOnChange={handleChange}/>
           <Input type='text' text='Cidade:' name='city' id='city' handleOnChange={handleChange}/>
-          <Input type='text' text='Código Postal:' name='zipcode' id='zipcode' handleOnChange={handleChange}/>
+          <Input type='text' text='Código Postal:' name='zipcode' id='zipcode' placeholder='Inclua somente números' handleOnChange={handleChange}/>
           <Input type='submit' value = 'Cadastrar'/>
         </form>
       </div>

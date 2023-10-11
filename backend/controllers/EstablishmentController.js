@@ -43,8 +43,7 @@ module.exports = class EstablishmentController{
         }
         try{
             await Establishment.create(establishment) 
-            const token = await createToken(establishment, req, res)
-            res.status(200).json({message: 'Estabelecimento cadastrado!', token: token})
+            res.status(200).json({message: 'Estabelecimento cadastrado!'})
         }catch(error){
             res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
@@ -73,26 +72,34 @@ module.exports = class EstablishmentController{
         }
         try{
             await createToken(establishment, req, res) 
+            res.status(200)
         }catch(error){
             res.status(422).json()
         }
         
     }
     //BUSCA OS DADOS DO USUÁRIO LOGADO A PARTIR DO TOKEN
-    static async getEstablishment(req, res){
-        let currentEstablishment
-        if(req.headers.authorization){
-            const token = await getToken(req)
-            const decoded = jwt.verify(token, process.env.SECRET)
-            currentEstablishment = await Establishment.findOne({where: { id: decoded.id}})
-            currentEstablishment.password = ''
-            if(!currentEstablishment){
-                res.status(422).json({message: 'Usuário não encontrado!'})
-                return
+    static async getEstablishment(req, res) {
+        if (req.headers.authorization) {
+          try {
+            const token = await getToken(req);
+            const decoded = jwt.verify(token, process.env.SECRET);
+            const currentEstablishment = await Establishment.findOne({ where: { id: decoded.id } });
+      
+            if (!currentEstablishment) {
+              res.status(422).json({ message: 'Usuário não encontrado!' });
+              return;
             }
+            currentEstablishment.password = '';
             res.status(200).send(currentEstablishment)
+          } catch (error) {
+            res.status(422).json({ message: error.message});
+          }
+        } else {
+          res.status(401).json({ message: 'Acesso negado!' });
         }
-    }
+      }
+      
     //EDICAO DE USUARIO
     static async editEstablishment(req, res){
         const id = req.params.id
