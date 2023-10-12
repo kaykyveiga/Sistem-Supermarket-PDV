@@ -5,19 +5,21 @@ import {Link} from 'react-router-dom'
 import {AiOutlineUser} from 'react-icons/ai'
 
 import api from '../../../helpers/api'
-import { Context } from '../../../context/Context'
 
 const Navbar = () => {
     const [establishment, setEstablishment] = useState({})
     const [authenticated, setAuthenticated] = useState(false)
     
-    /*useEffect(()=>{
+    useEffect(()=>{
         const token = localStorage.getItem('token')
         if(token){
-            api.defaults.headers.Authorization = `Bearer ${JSON.parse(token)}`
+            api.defaults.headers.Authorization = `Bearer ${JSON.parse(token)}` 
+            setAuthenticated(true)
+        }else{
+            setAuthenticated(false)
         }
-        setAuthenticated(true)
-    }, [])*/
+       
+    }, [])
     
     useEffect(()=>{
         const token = localStorage.getItem('token')
@@ -45,14 +47,15 @@ const Navbar = () => {
         {authenticated && (
         <div>
             <h2>{establishment.name}</h2>
+        </div>)}
+        {authenticated && (
+        <div>
             <ul>
-                <li><Link>Produtos</Link></li>
-                <li><Link>Cadastrar</Link></li>
+                <li><Link to='/'>Produtos</Link></li>
+                <li><Link to='/createproduct'>Cadastrar</Link></li>
                 <li><Link><AiOutlineUser/></Link></li>
             </ul>
-        </div>
-        )}
-        
+        </div>)}
     </div>
   )
 }

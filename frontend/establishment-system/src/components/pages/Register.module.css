@@ -19,6 +19,11 @@
 }
 .infoRegister p{
     font-size: 1.5em;
+    margin-bottom: 1em;
+}
+.infoRegister p a {
+    color: red;
+    font-weight: bold;
 }
 .formRegister{
     background-color: #fff;
@@ -30,6 +35,7 @@
     align-items: center;
     width: 550px;
     padding-bottom: 2em;
+    color: #000;
 }
 .form{
     margin-top: 1em;

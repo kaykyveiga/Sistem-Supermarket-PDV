@@ -17,8 +17,17 @@ export default function useAuth(){
     
     async function register(user){
         try{
-            const data = await api.post('/establishment/register', user).then((response)=> response.data)
+            await api.post('/establishment/register', user).then((response)=> response.data)
             navigate('/login')
+        }catch(error){
+            console.log(error)
+        }
+    }
+    async function login(user){
+        try{
+            const data = await api.post('/establishment/login', user).then((response)=> response.data)
+            authUser(data)
+            navigate('/')
         }catch(error){
             console.log(error)
         }
@@ -36,5 +45,5 @@ export default function useAuth(){
         localStorage.removeItem('token')
         setAuthenticated(false)
     }
-    return {register, authUser, authenticated, logout}
+    return {register, login, authUser, authenticated, logout}
 }

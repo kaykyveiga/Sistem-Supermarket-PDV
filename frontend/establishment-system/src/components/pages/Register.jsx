@@ -3,10 +3,11 @@ import styles from './Register.module.css'
 import { useContext, useState } from 'react'
 
 import Input from '../form/Input'
-import {Context}  from '../../../context/Context'
+import {ContextUser}  from '../../../context/ContextUser'
+import { Link } from 'react-router-dom'
 
 const Register = () => {
-  const {register} = useContext(Context)
+  const {register} = useContext(ContextUser)
   const [user, setUser] = useState({})
   
   const handleChange = (e)=>{
@@ -23,6 +24,7 @@ const Register = () => {
       <div className={styles.infoRegister}>
               <h1>Cadastre seu estabelecimento</h1>
               <p>Olá, seja bem vindo ao nosso sistema de gestão de estabelecimento de ponto de venda, insira as informações ao lado para registrar seu estabelecimento.</p>
+              <p>Já possui conta? <Link to='/login'>Clique aqui para fazer login</Link> </p>
         </div>
       <div className={styles.formRegister}>
         <form onSubmit={handleSubmit} action="/register" method='post' className={styles.form}>

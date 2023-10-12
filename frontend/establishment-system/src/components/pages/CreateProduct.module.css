@@ -1,4 +1,4 @@
-.pageLogin{
+.pageCreateProduct{
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -6,23 +6,27 @@
     margin: 3em 2em;
     padding-bottom: 2em;
 }
-.infoLogin{
+.infoCreateProduct{
     color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 600px;
+    width: 400px;
 }
-.infoLogin h1{
+.infoCreateProduct h2{
     font-size: 2.5em;
     margin-bottom: 1em;
 }
-.infoLogin p{
+.infoCreateProduct p{
     font-size: 1.5em;
+    margin-bottom: 1em;
 }
-.formLogin{
+.infoCreateProduct p a {
+    color: red;
+    font-weight: bold;
+}
+.formCreateProduct{
     background-color: #fff;
-    color: #000;
     border-radius: 2em;
     display: flex;
     justify-content: center;
@@ -31,16 +35,10 @@
     align-items: center;
     width: 550px;
     padding-bottom: 2em;
+    color: #000;
 }
 .form{
-    margin-top: 2em;
-}
-.form p{
-    margin-top: 1.5em;
-}
-.form p a{
-    color: red;
-    font-weight: bold;
+    margin-top: 1em;
 }
 input[type='submit']{
     border-radius: 1em;

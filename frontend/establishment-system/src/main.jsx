@@ -8,7 +8,8 @@ import  {createBrowserRouter, RouterProvider, Outlet, Navigate} from 'react-rout
 import Register from './components/pages/Register.jsx'
 import Home from './components/pages/Home.jsx'
 import Login from './components/pages/Login.jsx'
-import {AuthProvider} from '../context/Context.jsx'
+import CreateProduct from './components/pages/CreateProduct.jsx'
+
 
 
 const router = createBrowserRouter([
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
       {
         path: '/login',
         element: <Login/>
+      },
+      {
+        path: '/createproduct',
+        element: <CreateProduct/>
       }
     ]
   }
