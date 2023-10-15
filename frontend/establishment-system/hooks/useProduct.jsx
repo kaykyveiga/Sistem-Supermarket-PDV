@@ -15,5 +15,13 @@ export default function useProduct(){
             console.log(error)
         }
     }
-    return {createProduct}
+    async function getAllProducts(){
+        try{
+            const data = await api.get('/product/all').then((response)=>response.data)
+            return data
+        }catch(error){
+            console.log(error)
+        }
+    }
+    return {createProduct, getAllProducts }
 }

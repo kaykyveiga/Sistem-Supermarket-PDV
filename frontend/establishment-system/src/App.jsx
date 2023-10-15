@@ -4,6 +4,7 @@ import './App.css'
 import Navbar from './components/layout/Navbar'
 import { AuthProvider } from '../context/ContextUser'
 import { ProductProvider } from '../context/ContextProduct'
+import { Container } from './components/layout/Container'
 
 
 function App() {
@@ -12,7 +13,9 @@ function App() {
     <AuthProvider>
       <ProductProvider>
         <Navbar/>
-      <Outlet/>
+        <Container>
+          <Outlet/>
+        </Container>
       </ProductProvider>
     </AuthProvider>
     </div>

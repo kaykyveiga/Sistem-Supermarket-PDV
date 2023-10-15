@@ -51,7 +51,7 @@ const Navbar = () => {
         {authenticated && (
         <div>
             <ul>
-                <li><Link to='/'>Produtos</Link></li>
+                <li><Link to='/products'>Produtos</Link></li>
                 <li><Link to='/createproduct'>Cadastrar</Link></li>
                 <li><Link><AiOutlineUser/></Link></li>
             </ul>

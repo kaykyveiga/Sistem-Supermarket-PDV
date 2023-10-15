@@ -9,7 +9,7 @@ import Register from './components/pages/Register.jsx'
 import Home from './components/pages/Home.jsx'
 import Login from './components/pages/Login.jsx'
 import CreateProduct from './components/pages/CreateProduct.jsx'
-
+import AllProducts from './components/pages/AllProducts.jsx'
 
 
 const router = createBrowserRouter([
@@ -32,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: '/createproduct',
         element: <CreateProduct/>
+      },
+      {
+        path: '/products',
+        element: <AllProducts/>
       }
     ]
   }

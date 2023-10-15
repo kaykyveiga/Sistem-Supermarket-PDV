@@ -78,7 +78,7 @@ module.exports = class ProductController{
             order: [['name', 'ASC']]
         })
         try{
-            res.status(200).json({message: {products}})
+            res.status(200).send(products)
         }catch(error){
             res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
