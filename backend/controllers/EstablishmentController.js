@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 module.exports = class EstablishmentController{
-    //REGISTRO DE USUÁRIO COM VALIDACAO DE ERROS USANDO EXPRESS-VALIDATOR E SENHAS CRIPTOGRAFAS COM BCRYPTJS
+    //REGISTRO DE USUÁRIO COM VALIDACAO DE ERROS USANDO EXPRESS-VALIDATOR E SENHAS CRIPTOGRAFADAS COM BCRYPTJS
     static async registerEstablishment(req, res){ 
         
         const {nameEstablishment, nameProprietary, email, password, confirmPassword, phone, cnpj, state, city, zipcode} = req.body
@@ -81,22 +81,22 @@ module.exports = class EstablishmentController{
     //BUSCA OS DADOS DO USUÁRIO LOGADO A PARTIR DO TOKEN
     static async getEstablishment(req, res) {
         if (req.headers.authorization) {
-          try {
-            const token = await getToken(req);
-            const decoded = jwt.verify(token, process.env.SECRET);
-            const currentEstablishment = await Establishment.findOne({ where: { id: decoded.id } });
-      
-            if (!currentEstablishment) {
-              res.status(422).json({ message: 'Usuário não encontrado!' });
-              return;
+            try {
+                const token = await getToken(req);
+                const decoded = jwt.verify(token, process.env.SECRET);
+                const currentEstablishment = await Establishment.findOne({ where: { id: decoded.id } });
+        
+                if (!currentEstablishment) {
+                res.status(422).json({ message: 'Usuário não encontrado!' });
+                return;
+                }
+                currentEstablishment.password = '';
+                res.status(200).send(currentEstablishment)
+            }catch (error){
+                res.status(422).json({ message: error.message});
             }
-            currentEstablishment.password = '';
-            res.status(200).send(currentEstablishment)
-          } catch (error) {
-            res.status(422).json({ message: error.message});
-          }
-        } else {
-          res.status(401).json({ message: 'Acesso negado!' });
+        }else{
+            res.status(401).json({ message: 'Acesso negado!' });
         }
       }
       
@@ -133,7 +133,7 @@ module.exports = class EstablishmentController{
             await Establishment.update(establishment, {where: {id: id}}) 
             res.status(200).json({message: "Dados atualizados!"})
         }catch(error){
-            return res.status(500).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
+            res.status(500).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
 }

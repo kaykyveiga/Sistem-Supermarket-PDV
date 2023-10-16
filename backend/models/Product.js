@@ -1,6 +1,10 @@
 const sequelize = require('../db/conn')
 const {DataTypes} = require('sequelize')
-
+function generateNumber(){
+    const min = 10**12
+    const max = 10**13 -1
+    return Math.floor(Math.random() * (max-min + 1) + min)
+}
 const Product = sequelize.define('Product',{
     name: {
         type: DataTypes.STRING,
@@ -8,7 +12,7 @@ const Product = sequelize.define('Product',{
     },
     barcode: {
         type: DataTypes.STRING,
-        allowNull: false
+        defaultValue: generateNumber().toString()
     },
     price: {
         type: DataTypes.STRING,

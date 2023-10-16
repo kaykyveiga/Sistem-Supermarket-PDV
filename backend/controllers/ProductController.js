@@ -1,13 +1,16 @@
-const {Op, where} = require('sequelize')
+//MODELS
 const Product = require('../models/Product')
 const CartProduct = require('../models/CartProduct')
 const Cart = require('../models/Cart')
 const Establishment = require('../models/Establishment')
+
+//HELPERS
+const {Op, where} = require('sequelize')
 const {validationResult} = require('express-validator')
 const getUserByToken = require('../helpers/getUserByToken')
 const getEstablishmentByToken = require('../helpers/getEstablishmentByToken')
 
-//GERA UM NÚMERO COM 13 ALGORITMOS QUE SIMULA O CÓDIGO DE BARRAS DE UM PRODUTO
+//GERA UM NÚMERO COM 13 ALGORITMOS QUE SIMULA O CÓDIGO DE BARRAS DE UM PRODUTO, NÃO É NECESSÁRIO USAR EM PROJETO REAL
 function generateNumber(){
     const min = 10**12
     const max = 10**13 -1
@@ -16,18 +19,17 @@ function generateNumber(){
 module.exports = class ProductController{
     //CRIACAO DO PRODUTO
     static async create(req, res){
-        const {name, price, totalAmount} = req.body
+        const {name, price, barcode, totalAmount} = req.body
         const errors = validationResult(req)
         if(!errors.isEmpty()){
             res.status(422).json({message: errors})
             return
         }
         const establishment = await getEstablishmentByToken(req, res)
-        const randomNumber = generateNumber()
         const product = {
             name: name,
-            barcode: randomNumber.toString(),
             price: price,
+            barcode: barcode,
             totalAmount: totalAmount,
             EstablishmentId: establishment.id
         }
@@ -74,8 +76,10 @@ module.exports = class ProductController{
     }
     static async getAllProducts(req, res){
         //BUSCA TODOS OS PRODUTOS E ORDENA PELO NOME EM ORDER CRESCENTE
+        const establishment = await getEstablishmentByToken(req, res)
         const products = await Product.findAll({
-            order: [['name', 'ASC']]
+            order: [['name', 'ASC']], 
+            where: {EstablishmentId: establishment.id}
         })
         try{
             res.status(200).send(products)
@@ -86,7 +90,8 @@ module.exports = class ProductController{
     static async getProductById(req, res){
         //BUSCA O PRODUTO PELO ID
         const id = req.params.id
-        const product = await Product.findOne({where: {id: id}})
+        const establishment = await getEstablishmentByToken(req, res)
+        const product = await Product.findOne({where: {id: id, EstablishmentId: establishment.id} })
         if(!product){
             res.status(422).json({message: 'Produto não encontrado!'})
             return
@@ -100,11 +105,13 @@ module.exports = class ProductController{
     static async getProductsByName(req, res){
         //BUSCA O PRODUTO PELO NOME
         const {q} = req.query
+        const establishment = await getEstablishmentByToken(req, res)
         const products = await Product.findAll({
             where: {
                 name: {
                     [Op.like]: `%${q}%`
-                }
+                },
+                EstablishmentId: establishment.id
             }
         })
         if(products.length === 0){
@@ -112,13 +119,13 @@ module.exports = class ProductController{
             return
         }
         try{
-            res.status(200).json({message: 'Produtos cadastrados: ' + {products}})
+            res.status(200).json({message: 'Produtos cadastrados: ', products: products})
         }catch(error){
             res.status(422).json({message: 'ERRO EM PROCESSAR A SOLITICITAÇÃO:' + error})
         }
     }
     static async addCart(req, res){
-        //ADICIONA O PRODUTO(PEGANDO O ID) NO CARRINHO, CASO NAO EXISTIR CARRINHO CRIA-SE UM, SENAO, USA O ULTIMO CARRINHO CRIADO
+        //ADICIONA O PRODUTO(PEGANDO O ID) NO CARRINHO, CASO NAO EXISTIR CARRINHO CRIA-SE UM, SENAO, USA O ULTIMO CARRINHO ABERTO CRIADO
         const id = req.params.id
         const quantity = req.body.quantity
         const newCart = req.body.newCart
@@ -131,23 +138,27 @@ module.exports = class ProductController{
             cartId = createdCart.id
             
         }else{
-            const existingCart = await Cart.findAll({
+            const existingCart = await Cart.findOne({
                 order: [['id', 'DESC']],
-                limit: 1
+                limit: 1,
+                where: {checkSale: null}
             })
-            if(existingCart.length > 0){
-                cartId = existingCart[0].id
+            if(existingCart){
+                cartId = existingCart.id
             }else{
                 const createdCart = await Cart.create({UserId: user.id})
                 cartId = createdCart.id
-            }
-            
+            }    
         }
         
         const product = await Product.findOne({where: {id: id}})
         
         if(!product){
             res.status(422).json({message: 'Produto não encontrado!'})
+            return
+        }
+        if(product.totalAmount - quantity < 0){
+            res.status(422).json({message: 'Produto indisponível na quantidade selecionada!'})
             return
         }
         const cartProducts = {
@@ -196,32 +207,69 @@ module.exports = class ProductController{
         }
     }
     static async updateStock(req, res){
-        //UPDATE DE ESTOQUE, BUSCA OS PRODUTOS DE UM CARRINHO E ASSIM QUE SE FECHAR A COMPRA REALIZA A MODIFICAO. 
-        //SE O PRODUTO ESTIVER COM 0 UNIDADES NO ESTOQUE SE TORNA IMPOSSIVEL ADICIONAR AO CARRINHO
-        const id = req.params.id
-        
-        const products = await CartProduct.FindAll()
-        console.log(products)
-
-        if(!product){
-            res.status(422).json({message: 'Produto não encontrado!'})
+        //UPDATE DE ESTOQUE, BUSCA OS PRODUTOS DE UM CARRINHO E ASSIM QUE SE FECHAR A COMPRA REALIZA A MODIFICACAO. 
+        //SE A QUANTIDADE ESCOLHIDA PELO CLIENTE FOR MAIOR QUE A QUANTIDADE DISPONIVEL EM ESTOQUE, LANCA UM ERRO!
+        const cartId = req.params.id
+        const cart = await Cart.findOne({where: {id: cartId}})
+        if(cart.checkSale){
+            res.status(422).json({message: 'O carrinho selecionado já foi vendido!'})
             return
         }
-        const qtyEntries = await CartProduct.findAll({where: {productId: product.id}})
-        
-        const qtyInCart = qtyEntries.reduce((total, entry)=> total + entry.quantity, 0)
-        
-        if((product.totalAmount - qtyInCart) < 0){
-            res.status(422).json({message: 'Produto indisponível na quantidade selecionada!'})
-            return
+        const productsInCart = await CartProduct.findAll({
+            where: {
+                cartId: cartId
+            }
+        })
+        for(const cartProduct of productsInCart){
+            const productId = cartProduct.productId
+            const qtyInCart = cartProduct.quantity
+            
+            const product = await Product.findOne({where: {id: productId}})
+            if(!product){
+                res.status(422).json({message: 'Produto não encontrado!'})
+                return
+            }
+            if(product.totalAmount - qtyInCart < 0){
+                res.status(422).json({message: `Produto indisponível na quantidade selecionada!`})
+                return
+            }
         }
         
         try{
-            let totalAmount = product.totalAmount - qtyInCart
-            await Product.update({totalAmount: totalAmount}, {where: {id:id}})
+            for(const cartProduct of productsInCart){
+                const productId = cartProduct.productId
+                const qtyInCart = cartProduct.quantity
+                const product = await Product.findOne({where: {id: productId}})
+                const totalAmount = product.totalAmount - qtyInCart
+                await Product.update({totalAmount: totalAmount}, {where: {id: product.id}})
+                await CartProduct.update({checkSale: true}, {where: {cartId: cartId}})
+                await Cart.update({checkSale: true}, {where: {id: cartId}})
+            }
             res.status(200).json({message: 'Estoque atualizado!'})
         }catch(error){
-            res.status(422).json({message: error})
-        } 
+            res.status(422).json({message: 'Erro em processar sua solicitação!' + error})
+        }
+    }
+    static async expirationCart(req, res){
+        //VERIFICA SE O CARRINHO ESTA ABERTO(NAO FOI VENDIDO) E VERIFICA O TEMPO DESDE QUE ELE FOI CRIADO, SE PASSAR DE 24H, O CARRINHO É EXCLUÍDO
+        const currentDate = new Date()
+        const carts = await Cart.findAll()
+        try{
+            for(const cart of carts){
+                if(cart.checkSale === null){
+                    const updatedAt = new Date(cart.updatedAt)
+                    
+                    const timeDifference = currentDate - updatedAt
+                    const expirationLimit = 24 * 60 * 60 * 1000
+                    if(timeDifference > expirationLimit){
+                        await Cart.destroy({where: {id: cart.id}})
+                    }
+                }
+            }
+            res.status(200).json({message: 'Lista de carrinhos atualizados!'})
+        }catch(error){
+            res.status(422).json({message: 'Erro em processar sua solicitação!' + error})
+        }
+        
     }
 }

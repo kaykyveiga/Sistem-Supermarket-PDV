@@ -17,6 +17,9 @@ const CartProduct = sequelize.define('CartProduct', {
         type: DataTypes.INTEGER, // Quantidade de itens no carrinho
         allowNull: false,
     },
+    checkSale: {
+        type: DataTypes.BOOLEAN
+    }
 
     // Outros campos relacionados à relação, se necessário
 });

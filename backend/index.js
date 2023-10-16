@@ -1,15 +1,15 @@
 const express = require('express')
 const app = express()
-const db = require('./db/conn')
+
+//Models
 const Product = require('./models/Product')
 const Establishment = require('./models/Establishment')
 const Cart = require('./models/Cart')
 const CartProduct = require('./models/CartProduct')
 const Users = require('./models/Users')
+
+//Cors
 const cors = require('cors')
-
-app.use(express.json())
-
 const corsOptions = {
     origin: 'http://localhost:3000',
     credentials: true,
@@ -17,6 +17,7 @@ const corsOptions = {
 
 }
 app.use(cors(corsOptions))
+app.use(express.json())
 
 //Routes
 const establishmentRoutes = require('./routes/EstablishmentRoutes')
@@ -26,8 +27,9 @@ app.use('/establishment', establishmentRoutes)
 app.use('/product', productRoutes)
 app.use('/users', usersRoutes)
 
-
-db
+//Connection
+const conn = require('./db/conn')
+conn
 .sync()
 //.sync({force:true})
 //.sync({alter: true})
